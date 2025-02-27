@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { ArrowLeft, Eye, EyeOff } from "lucide-react"
-import type React from "react" // Import React
+import type React from "react"
+import { login } from "../api/services/authService"
+
 
 export default function Login() {
   const [loading, setLoading] = useState(false)
@@ -40,7 +42,7 @@ export default function Login() {
     return ""
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handalsumbit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setLoading(true)
     setError("")
@@ -49,7 +51,6 @@ export default function Login() {
     const formData = new FormData(event.currentTarget)
     const email = formData.get("email") as string
     const password = formData.get("password") as string
-
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.")
       setLoading(false)
@@ -62,32 +63,30 @@ export default function Login() {
       setLoading(false)
       return
     }
-
     const credentials = { email, password }
+    const response = await login(credentials)
 
-    try {
-      const response = await axios.post("http://localhost:3001/auth/login", credentials)
-      if (response.status === 201) {
-        setSuccess("Login successful!")
-        localStorage.setItem("token", response.data.token)
-router.push("/")
-
-      }
-    } catch (err: any) {
-      if (err.response && err.response.data) {
-        setError(err.response.data.message || "Login failed. Please try again.")
-      }
-    } finally {
-      setLoading(false)
+    
+    if (response.token) {
+      setSuccess("Login successful!")
+      console.log(response);
+      
+      localStorage.setItem("token", response.token)
+      localStorage.setItem("role",response.user.role)
+      localStorage.setItem("id",response.user.id)
+      router.push("/")
     }
+    else {
+      setError("email or password Wrong")
+    }
+    setLoading(false)
   }
-
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-       
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-      <Link href="/" className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500">
+        <Link href="/" className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Home
         </Link>
@@ -96,7 +95,7 @@ router.push("/")
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handalsumbit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -144,19 +143,18 @@ router.push("/")
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
               >
                 {loading ? "Signing in..." : "Sign in"}
               </button>
             </div>
           </form>
 
-         
+
 
           <div className="mt-6">
-            
+
             <div className="mt-6 text-center">
               <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
                 Sign up for a new account

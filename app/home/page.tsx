@@ -1,10 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Navbar from "../navbar/page";
-import axios from "axios";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useRouter } from "next/navigation"
-
+import { createProduct,fetchProducts, updateProduct, deleteProduct } from "../api/productservis";
 
 interface Product {
   id: string;
@@ -15,20 +14,33 @@ interface Product {
 }
 
 const Main = () => {
-  const API = "http://localhost:3001/product";
   const [products, setProducts] = useState<Product[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [detail, setDetail] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
-  
   const [loading, setLoading] = useState(false);
-  
-const router = useRouter()
-  
+  const [role, setRole] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role"); 
+    setRole(storedRole);
+
+    const loadProducts = async () => {
+      try {
+        const data = await fetchProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products");
+      }
+    };
+
+    loadProducts();
+  }, []);
+
   const clearForm = () => {
     setTitle("");
     setPrice("");
@@ -37,64 +49,23 @@ const router = useRouter()
     setEditId(null);
   };
 
-  const fetchProducts = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await axios.get(`${API}/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProducts(response.data?.data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-    const token = localStorage.getItem("token");
-  
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-  
     const formData = new FormData();
     formData.append("title", title);
     formData.append("price", price);
     formData.append("detail", detail);
-  
-    if (editId) {
+    if (imageFile) formData.append("image", imageFile);
 
-      const existingProduct = products.find((product) => product.id === editId);
-  
-      if (imageFile) {
-        formData.append("image", imageFile); 
-      } else if (existingProduct?.img) {
-        formData.append("img", existingProduct.img); 
-      }
-    } else {
-      if (imageFile) {
-        formData.append("image", imageFile);
-      }
-    }
-  
     try {
       if (editId) {
-        await axios.put(`${API}/update/${editId}`, formData, {
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-        });
+        await updateProduct(editId, formData);
       } else {
-        await axios.post(`${API}/create`, formData, {
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-        });
+        await createProduct(formData);
       }
       setIsOpen(false);
-      fetchProducts();
+      setProducts(await fetchProducts());
     } catch (error) {
       console.error("Error submitting product:", error);
     } finally {
@@ -102,48 +73,42 @@ const router = useRouter()
       setLoading(false);
     }
   };
-  
 
-  const deleteProduct = async (id: string) => {
-  
-    const token = localStorage.getItem("token");
-    setLoading(true)
+  const handleDelete = async (id: string) => {
+    setLoading(true);
     try {
-      await axios.delete(`${API}/delete/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await deleteProduct(id);
       setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
-      console.log("Product deleted successfully");
     } finally {
       setLoading(false);
-
     }
   };
 
-  const editProduct = (id: string) => {
-
-    const productToEdit = products.find((product) => product.id === id);
-    if (!productToEdit) return;
+  const handleEdit = (id: string) => {
+    const product = products.find((product) => product.id === id);
+    if (!product) return;
     setEditId(id);
-    setTitle(productToEdit.title);
-    setPrice(productToEdit.price.toString());
-    setDetail(productToEdit.detail);
+    setTitle(product.title);
+    setPrice(product.price.toString());
+    setDetail(product.detail);
     setImageFile(null);
     setIsOpen(true);
   };
 
   return (
     <>
-      <Navbar />
+      
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Product List</h1>
-          <button
-            onClick={() => setIsOpen(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600 transition"
-          >
-            Add Product
-          </button>
+          {role === "admin" && (
+            <button
+              onClick={() => setIsOpen(true)}
+              className="bg-blue-500 text-white sm:px-4 sm:py-2 px-2 py-1 rounded-md shadow-md hover:bg-blue-600 transition"
+            >
+              Add Art
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
@@ -153,14 +118,13 @@ const router = useRouter()
               <h3 className="text-lg font-semibold mt-2">{product.title}</h3>
               <p className="text-gray-600">Price: ${product.price}</p>
               <p className="text-sm text-gray-500">{product.detail}</p>
-              <div className="flex gap-2 mt-4">
-                <button onClick={() => deleteProduct(product.id)} className="bg-red-500 text-white px-3 py-1 rounded-md">
-                  Delete
-                </button>
-                <button onClick={() => editProduct(product.id)} className="bg-yellow-500 text-white px-3 py-1 rounded-md">
-                  Edit
-                </button>
-              </div>
+
+           
+                <div className="flex gap-2 mt-4">
+                  <button className="bg-gray-400 text-white px-3 py-1 rounded-md">Add To Cart</button>
+                  <button className="bg-green-500 text-white px-3 py-1 rounded-md">Buy Now</button>
+                </div>
+    
             </div>
           ))}
         </div>
