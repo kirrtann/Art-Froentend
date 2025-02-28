@@ -3,7 +3,7 @@
 import axios from "axios"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { ArrowLeft, Eye, EyeOff } from "lucide-react"
 import type React from "react"
@@ -17,6 +17,12 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
 
   const router = useRouter()
+
+
+
+  const [loginCheck, setLoginCheck] = useState("")
+  const [uname, setUname] = useState("")
+  const [role, setRole] = useState("")
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -81,7 +87,11 @@ export default function Login() {
     }
     setLoading(false)
   }
-
+  useEffect(() => {
+    setLoginCheck(localStorage.getItem("token") || "")
+    setUname(localStorage.getItem("email") || "")
+    setRole(localStorage.getItem("role") || "")
+  }, [])
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
 

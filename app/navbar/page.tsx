@@ -21,6 +21,8 @@ const Navbar: React.FC = () => {
 
   const logout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("role")
+    localStorage.removeItem("id")
     router.push("/login")
   }
 
@@ -148,7 +150,7 @@ const Navbar: React.FC = () => {
                   {role === "admin" && (
                     <Link href="/Productadd" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
                       <Settings className="inline-block w-4 h-4 mr-2" />
-                     Your Product
+                     Your Art
                     </Link>
                   )}
                   <button

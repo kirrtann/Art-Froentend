@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../navbar/page";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createProduct,fetchProducts, updateProduct, deleteProduct } from "../api/productservis";
+import { createProduct, fetchProducts, updateProduct, deleteProduct } from "../api/productservis";
 
 interface Product {
   id: string;
@@ -23,10 +23,9 @@ const Main = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
-    const storedRole = localStorage.getItem("role"); 
+    const storedRole = localStorage.getItem("role");
     setRole(storedRole);
 
     const loadProducts = async () => {
@@ -59,11 +58,7 @@ const Main = () => {
     if (imageFile) formData.append("image", imageFile);
 
     try {
-      if (editId) {
-        await updateProduct(editId, formData);
-      } else {
-        await createProduct(formData);
-      }
+      await createProduct(formData);
       setIsOpen(false);
       setProducts(await fetchProducts());
     } catch (error) {
@@ -73,31 +68,9 @@ const Main = () => {
       setLoading(false);
     }
   };
-
-  const handleDelete = async (id: string) => {
-    setLoading(true);
-    try {
-      await deleteProduct(id);
-      setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (id: string) => {
-    const product = products.find((product) => product.id === id);
-    if (!product) return;
-    setEditId(id);
-    setTitle(product.title);
-    setPrice(product.price.toString());
-    setDetail(product.detail);
-    setImageFile(null);
-    setIsOpen(true);
-  };
-
   return (
     <>
-      
+      <Navbar />
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Product List</h1>
@@ -119,12 +92,12 @@ const Main = () => {
               <p className="text-gray-600">Price: ${product.price}</p>
               <p className="text-sm text-gray-500">{product.detail}</p>
 
-           
-                <div className="flex gap-2 mt-4">
-                  <button className="bg-gray-400 text-white px-3 py-1 rounded-md">Add To Cart</button>
-                  <button className="bg-green-500 text-white px-3 py-1 rounded-md">Buy Now</button>
-                </div>
-    
+
+              <div className="flex gap-2 mt-4">
+                <button className="bg-gray-400 text-white px-3 py-1 rounded-md">Add To Cart</button>
+                <button className="bg-green-500 text-white px-3 py-1 rounded-md">Buy Now</button>
+              </div>
+
             </div>
           ))}
         </div>
