@@ -43,7 +43,7 @@ export default function Signup() {
 
       if (response.status === 201) {
         setSuccess("Account created successfully!")
-        router.push("/")
+        router.push("/login")
       }
     } catch (err: any) {
       if (err.response && err.response.data) {

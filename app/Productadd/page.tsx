@@ -54,23 +54,24 @@ const Products = () => {
   };
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <h1 className="text-center mt-[50px] text-[28px] font-bold">Your Art</h1>
 
-      <div className="flex flex-wrap justify-center gap-4 mt-5">
+      <div className="flex flex-wrap justify-center  gap-4 mt-5">
         {loading ? (
           <p>Loading...</p>
         ) : yourProducts.length > 0 ? (
           yourProducts.map((art, index) => (
-            <div key={index} className="border p-4 rounded-lg shadow-md">
-              <img src={art.img} alt={art.title} className="w-[200px] h-[200px] object-full mt-2 rounded-md" />
+            <div key={index} className="border p-4 relative rounded-lg shadow-md">
+              <img src={art.img} alt={art.title} className="w-[300px] h-[200px] object-full mt-2 rounded-md" />
               <h2 className="font-bold text-[20px] ">{art.title}</h2>
               <p>{art.detail}</p>
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2 mt-4 justify-end  ">
                 <button className="bg-gray-400 text-white px-3 py-1 rounded-md">Update</button>
                 <button onClick={() => handleDelete(art.id)} className="bg-green-500 text-white px-3 py-1 rounded-md">Delete</button>
               </div>
             </div>
+            
           ))
         ) : (
           <p>No art found.</p>
