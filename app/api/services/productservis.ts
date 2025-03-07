@@ -23,3 +23,15 @@ export const Updateart = async (credentials: {
 }) => {
   return apiHelper(axiosInstance.post("product/ ", credentials));
 };
+
+export const Cartdata = async(credentials:{
+user_id :string;
+product_id:string;
+})=>{
+  return apiHelper(axiosInstance.post("order/Postorder",credentials))
+}
+
+export const Getorder = async ({ user_id }:GetArtParams) => {
+  const response = await axiosInstance.get(`order/history/${user_id}`);
+  return response.data; 
+};

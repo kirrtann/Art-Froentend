@@ -61,8 +61,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = (product: Omit<CartItem, "quantity">) => {
     setCartItems((prevItems) => {
+      // console.log(prevItems);
+      
       const existingItemIndex = prevItems.findIndex((item) => item.id === product.id);
       let updatedItems;
+
+  
   
       if (existingItemIndex >= 0) {
         updatedItems = [...prevItems];
