@@ -8,7 +8,7 @@ import { useCart } from "@/constant/cart-context"
 import { Cartdata } from "../api/services/productservis"
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart()
+  const { cartItems, removeFromCart,  cartTotal, clearCart } = useCart()
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState("")
 
@@ -123,7 +123,7 @@ export default function CartPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-lg">${item.price.toFixed(2)}</p>
+                        <p className="font-semibold text-lg">{item.price.toFixed(2)}</p>
                       </div>
                     </div>
 
@@ -152,7 +152,7 @@ export default function CartPage() {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
-                <span>${cartTotal.toFixed(2)}</span>
+                <span>{cartTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Shipping</span>
@@ -160,12 +160,12 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tax (12%)</span>
-                <span>${(cartTotal * 0.12).toFixed(2)}</span>
+                <span>{(cartTotal * 0.12).toFixed(2)}</span>
               </div>
               <div className="border-t border-gray-200 pt-3 mt-3">
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>${(cartTotal * 1.12).toFixed(2)}</span>
+                  <span>{(cartTotal * 1.12).toFixed(2)}</span>
                 </div>
               </div>
             </div>

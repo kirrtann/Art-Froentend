@@ -5,10 +5,13 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { fetchProducts, createProduct } from "./api/productservis"
+import { createProduct } from "./api/productservis"
 import { toast } from "react-hot-toast"
 import { useCart } from "@/constant/cart-context"
-import { Plus, X, Loader2 } from "lucide-react"
+import { Plus, X, Loader2, Search, ShoppingCart } from "lucide-react"
+import { getallart, searchproduct } from "./api/services/productservis"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 
 interface Product {
   id: string
@@ -20,27 +23,39 @@ interface Product {
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
   const [isOpen, setIsOpen] = useState(false)
-  const [editId, setEditId] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [price, setPrice] = useState("")
   const [detail, setDetail] = useState("")
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [role, setRole] = useState<string | null>(null)
+
   const { addToCart } = useCart()
   const router = useRouter()
+
+  const product = async () => {
+    const response = await getallart()
+    const data = response.data?.data
+    return data
+  }
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role")
     setRole(storedRole)
 
     const loadProducts = async () => {
+      setIsLoading(true)
       try {
-        const data = await fetchProducts()
+        const response = await getallart()
+        const data = response.data?.data
         setProducts(data)
       } catch (error) {
         console.error("Failed to fetch products")
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -52,7 +67,6 @@ export default function Home() {
     setPrice("")
     setDetail("")
     setImageFile(null)
-    setEditId(null)
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -67,7 +81,7 @@ export default function Home() {
     try {
       await createProduct(formData)
       setIsOpen(false)
-      setProducts(await fetchProducts())
+      setProducts(await product())
       toast.success("Product added successfully!")
     } catch (error) {
       console.error("Error submitting product:", error)
@@ -93,67 +107,121 @@ export default function Home() {
     router.push("/cart")
   }
 
+  const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value
+    setSearchQuery(query)
+    if (!query.trim()) {
+      const allProducts = await product()
+      setProducts(allProducts)
+      return
+    }
+    try {
+      const response = await searchproduct(query)
+      if (response && Array.isArray(response)) {
+        setProducts(response)
+      } else {
+        setProducts([])
+      }
+    } catch (error) {
+      console.error("Error fetching search results:", error)
+      setProducts([])
+    }
+  }
+
   return (
-    <div className="container mx-auto max-w-7xl">
-      <div className="flex  justify-between items-center mb-8">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Art Gallery</h1>
+          <h1 className="text-3xl font-bold">Art Gallery</h1>
+          <p className="text-muted-foreground mt-1">Discover and collect unique artwork</p>
         </div>
-        {role === "admin" && (
-          <button
-            onClick={() => setIsOpen(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-            <span>Add Art</span>
-          </button>
-        )}
+
+        <div className="flex w-full md:w-auto gap-4">
+          <div className="relative flex-1 md:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search for art..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="pl-10 w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+          </div>
+
+          {role === "admin" && (
+            <Button onClick={() => setIsOpen(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Art</span>
+            </Button>
+          )}
+        </div>
       </div>
 
-      {products.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64">
-          <div className="animate-pulse flex flex-col items-center">
-            <div className="h-12 w-12 rounded-full bg-gray-300 dark:bg-gray-700 mb-4"></div>
-            <div className="h-4 w-48 bg-gray-300 dark:bg-gray-700 rounded mb-2"></div>
-            <div className="h-3 w-32 bg-gray-300 dark:bg-gray-700 rounded"></div>
-          </div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading products...</p>
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+              <div className="aspect-[4/3] bg-muted animate-pulse" />
+              <div className="p-6">
+                <div className="h-6 w-2/3 bg-muted animate-pulse rounded mb-2" />
+                <div className="h-4 w-1/2 bg-muted animate-pulse rounded mb-4" />
+                <div className="h-10 w-full bg-muted animate-pulse rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : products.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Search className="h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-xl font-semibold">No Artwork Found</h3>
+          <p className="text-muted-foreground mt-2 max-w-md">
+            We couldn't find any artwork matching your search. Try different keywords or browse our gallery.
+          </p>
+          {searchQuery && (
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => {
+                setSearchQuery("")
+                product().then(setProducts)
+              }}
+            >
+              Clear Search
+            </Button>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
             <div
               key={product.id}
-              className="group bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl"
+              className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden group"
             >
-              <div className="relative h-64 overflow-hidden">
+              <div className="aspect-[4/3] relative overflow-hidden bg-muted">
                 <Image
                   src={product.img || "/placeholder.svg"}
                   alt={product.title}
                   fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
 
-              <div className="p-5">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{product.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">{product.detail}</p>
-                <div className="md:flex justify-between items-center">
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{product.price}</p>
+              <div className="p-6">
+                <h3 className="text-2xl font-semibold mb-2 line-clamp-1">{product.title}</h3>
+                <p className="text-muted-foreground mb-4 line-clamp-2">{product.detail}</p>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold">₹{product.price}</span>
+
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleAddToCart(product)}>
+                      <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
-                    </button>
-                    <button
-                      onClick={() => handleBuyNow(product)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                    >
+                    </Button>
+                    <Button size="sm" onClick={() => handleBuyNow(product)}>
                       Buy Now
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -162,106 +230,110 @@ export default function Home() {
         </div>
       )}
 
-      {/* Add Product Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
-
-          <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Add New Art</h2>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <X className="h-6 w-6" />
-              </button>
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+          <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Add New Art</h2>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setIsOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
+            <Separator />
 
-            <form onSubmit={handleSubmit} className="p-6">
-              <div className="space-y-5">
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Title
-                  </label>
-                  <input
-                    id="title"
-                    type="text"
-                    placeholder="Product title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Price
-                  </label>
-                  <input
-                    id="price"
-                    type="number"
-                    placeholder="0"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="detail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Details
-                  </label>
-                  <textarea
-                    id="detail"
-                    placeholder="Product description"
-                    value={detail}
-                    onChange={(e) => setDetail(e.target.value)}
-                    rows={4}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Product Image
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="image"
-                      type="file"
-                      onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-200"
-                    />
-                  </div>
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label
+                  htmlFor="title"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Title
+                </label>
+                <input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter artwork title"
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
               </div>
 
-              <div className="mt-8 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+              <div className="space-y-2">
+                <label
+                  htmlFor="price"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
+                  Price (₹)
+                </label>
+                <input
+                  id="price"
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0"
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="detail"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="detail"
+                  value={detail}
+                  onChange={(e) => setDetail(e.target.value)}
+                  placeholder="Describe your artwork..."
+                  rows={4}
+                  required
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[80px]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="image"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Artwork Image
+                </label>
+                <input
+                  id="image"
+                  type="file"
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+                />
+                {imageFile && (
+                  <div className="mt-2 relative aspect-video rounded-md overflow-hidden border">
+                    <Image
+                      src={URL.createObjectURL(imageFile) || "/placeholder.svg"}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
-                >
+                </Button>
+                <Button type="submit" disabled={loading}>
                   {loading ? (
-                    <span className="flex items-center">
-                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                      Processing...
-                    </span>
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
                   ) : (
-                    "Add Art"
+                    "Add Artwork"
                   )}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

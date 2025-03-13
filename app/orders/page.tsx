@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, ShoppingBag, Calendar, Package } from "lucide-react"
+import { ArrowLeft, ShoppingBag, Calendar, Package, Download } from "lucide-react"
 import { Getorder } from "../api/services/productservis"
 
 interface Product {
@@ -16,6 +16,7 @@ interface Order {
   id: string;
   created_at: string;
   product: Product;
+  invoice_url: string;
 }
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -42,9 +43,9 @@ export default function OrdersPage() {
     fetchData()
   }, [])
 
-  const formatDate = (dateString:string) => {
-    const options = { year: "numeric", month: "long", day: "numeric" }
-    return new Date(dateString).toLocaleDateString(undefined, options)
+  const formatDate = (dateString: string) => {
+    // const options = { year: "numeric", month: "long", day: "numeric" }
+    return new Date(dateString).toLocaleDateString(undefined)
   }
 
   return (
@@ -55,7 +56,7 @@ export default function OrdersPage() {
           <span>Back to Gallery</span>
         </Link>
         <h1 className="text-2xl md:text-3xl font-bold">Your Orders</h1>
-        <div className="w-[100px]"></div> {/* Spacer for alignment */}
+        <div className="w-[100px]"></div>
       </div>
 
       {loading ? (
@@ -98,7 +99,7 @@ export default function OrdersPage() {
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="font-semibold text-lg line-clamp-1">{order.product.title}</h3>
                     <span className="ml-2 shrink-0 text-sm px-2 py-1 bg-gray-100 rounded-full">
-                    ₹{Number.parseFloat(order.product.price).toFixed(2)}
+                      ₹{Number.parseFloat(order.product.price).toFixed(2)}
                     </span>
                   </div>
 
@@ -114,6 +115,17 @@ export default function OrdersPage() {
                       <span>Order ID: #{order.id.substring(0, 8)}</span>
                     </div>
                   </div>
+
+                  <div className="mt-4">
+                    <a
+                      href={order.invoice_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      <Download className="h-5 w-5 mr-2" /> Download Invoice
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}
@@ -123,4 +135,3 @@ export default function OrdersPage() {
     </div>
   )
 }
-

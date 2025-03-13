@@ -8,17 +8,7 @@ const getAuthHeaders = () => {
   return { Authorization: `Bearer ${token}` };
 };
 
-export const fetchProducts = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/all`, {
-      headers: getAuthHeaders(),
-    });
-    return response.data?.data;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    throw error;
-  }
-};
+
 
 export const createProduct = async (formData: FormData) => {
   return axios.post(`${API_URL}/create`, formData, {
@@ -32,8 +22,5 @@ export const updateProduct = async (id: string, formData: FormData) => {
   });
 };
 
-export const deleteProduct = async (id: string) => {
-  return axios.delete(`${API_URL}/delete/${id}`, {
-    headers: getAuthHeaders(),
-  });
-};
+
+

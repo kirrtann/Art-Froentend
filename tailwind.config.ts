@@ -24,7 +24,7 @@ module.exports = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#E53E3E", // A nice red color for the art gallery
+          DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -73,6 +73,6 @@ module.exports = {
       },
     },
   },
-  // plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate")],
 }
 
