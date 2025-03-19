@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from "react-hot-toast";
 
 const apiHelper = async (
-  request: Promise<any>, // The actual API call (axios promise)
+  request: Promise<any>, 
   showAlert: boolean = false
 ) => {
   try {

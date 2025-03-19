@@ -53,7 +53,7 @@ export default function Home() {
         const data = response.data?.data
         setProducts(data)
       } catch (error) {
-        console.error("Failed to fetch products")
+        console.error("Failed to fetch products",error)
       } finally {
         setIsLoading(false)
       }
@@ -175,7 +175,7 @@ export default function Home() {
           <Search className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold">No Artwork Found</h3>
           <p className="text-muted-foreground mt-2 max-w-md">
-            We couldn't find any artwork matching your search. Try different keywords or browse our gallery.
+            We couldn&apos;t find any artwork matching your search. Try different keywords or browse our gallery.
           </p>
           {searchQuery && (
             <Button

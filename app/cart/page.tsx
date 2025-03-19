@@ -8,7 +8,7 @@ import { useCart } from "@/constant/cart-context"
 import { Cartdata } from "../api/services/productservis"
 
 export default function CartPage() {
-  const { cartItems, removeFromCart,  cartTotal, clearCart } = useCart()
+  const { cartItems, removeFromCart, cartTotal, clearCart } = useCart()
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState("")
 
@@ -32,7 +32,7 @@ export default function CartPage() {
     }
 
     try {
-      const orderRequests = cartData.map((item:any) => Cartdata({ user_id: userId, product_id: item.id }))
+      const orderRequests = cartData.map((item: { id: string }) => Cartdata({ user_id: userId, product_id: item.id }))
       await Promise.all(orderRequests)
       clearCart()
       alert("Thank you for your purchase! Your order has been placed.")
@@ -63,7 +63,7 @@ export default function CartPage() {
             </div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-2">Your cart is empty</h2>
             <p className="text-gray-500 mb-8 text-center max-w-md">
-              Looks like you haven't added any items to your cart yet. Browse our gallery to find something you'll love.
+              Looks like you haven&apos;t added any items to your cart yet. Browse our gallery to find something you&apos;ll love.
             </p>
             <Link href="/" className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
               Browse Gallery

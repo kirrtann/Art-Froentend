@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Eye, EyeOff, LogIn } from "lucide-react"
 import type React from "react"
 import { login } from "../api/services/authService"
@@ -15,9 +15,6 @@ export default function Login() {
 
   const router = useRouter()
 
-  const [loginCheck, setLoginCheck] = useState("")
-  const [uname, setUname] = useState("")
-  const [role, setRole] = useState("")
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -82,11 +79,6 @@ export default function Login() {
     setLoading(false)
   }
 
-  useEffect(() => {
-    setLoginCheck(localStorage.getItem("token") || "")
-    setUname(localStorage.getItem("email") || "")
-    setRole(localStorage.getItem("role") || "")
-  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -186,7 +178,7 @@ export default function Login() {
               )}
 
               <div className="mt-6 text-center text-sm">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500 hover:underline">
                   Create an account
                 </Link>

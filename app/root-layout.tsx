@@ -22,17 +22,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter()
   const pathname = usePathname()
   const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+ 
 
   useEffect(() => {
     const token = localStorage.getItem("token")
 
     if (!token && pathname !== "/login"  ) {
       router.push("/signup")
-    } else {
-      setIsAuthenticated(!!token) 
-    }
-
+    } 
     setIsLoading(false)
   }, [router, pathname])
 

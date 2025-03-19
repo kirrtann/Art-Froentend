@@ -153,7 +153,7 @@ const Products = () => {
               <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setFilterStatus(null)}>All Artwork</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus("available")}>Available</DropdownMenuItem>
+              {/* <DropdownMenuItem onClick={() => setFilterStatus("")}>Available</DropdownMenuItem> */}
               <DropdownMenuItem onClick={() => setFilterStatus("sold")}>Sold</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

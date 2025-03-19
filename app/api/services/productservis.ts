@@ -30,6 +30,7 @@ export const updateArt = async (id: string, formData: FormData) => {
 };
 
 export const Cartdata = async (credentials: {
+  id?:number;
   user_id: string;
   product_id: string;
 }) => {
